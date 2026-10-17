@@ -1,0 +1,13 @@
+node_modules
+dist
+.env
+*.tsbuildinfo
+__pycache__/
+
+# Farm data — keep out of git (run these in Supabase, store them privately)
+supabase/import_*.sql
+supabase/*_findings.md
+*.xlsx
+
+# local git helper files
+.farmos-merge-index
