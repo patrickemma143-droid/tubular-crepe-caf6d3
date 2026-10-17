@@ -22,4 +22,6 @@ everything back, a 240-record offline backlog, feed stock, and no app errors.
 
 `ranch.cjs` (after `reset.sh`, needs `supabase/import_kyankwanzi.sql`): imports the Kyankwanzi register, starts per-animal tracking (747 records), tags, weighs and calves animals, checks the outlook, Today, filters, report and Excel, and that a second phone receives the whole herd.
 
-Last run (18 Oct 2026): phones 25/25, import 16/16, ranch 22/22.
+`farms.cjs <shots dir> <data file>` (no cloud needed): opens the two-farm data file on a fresh phone, switches farms, checks the comparison figures for 2018, records farm-total milk, adds and removes a farm, and downloads the all-farms backup.
+
+Last run (18 Oct 2026): phones 25/25, import 16/16, ranch 22/22, farms 22/22.

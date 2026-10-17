@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from './db';
-import { DEFAULT_SETTINGS } from './settings';
+import { DEFAULT_SETTINGS, withCloud } from './settings';
 import type { Settings } from './types';
 import type { Farm } from '../lib/herd';
 
@@ -24,5 +24,5 @@ export function useFarm(): Farm & { loading: boolean } {
 }
 
 export function useSettings(): Settings | undefined {
-  return useLiveQuery(async () => ({ ...DEFAULT_SETTINGS, ...((await db.meta.get('settings')) || {}) }), []);
+  return useLiveQuery(async () => withCloud({ ...DEFAULT_SETTINGS, ...((await db.meta.get('settings')) || {}) }), []);
 }

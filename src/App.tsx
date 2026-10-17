@@ -2,7 +2,7 @@ import { Component, useEffect, useState, type ReactNode } from 'react';
 import { HashRouter, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import {
   Home, PawPrint, Milk, Menu, Plus, HeartPulse, Baby, Wallet, FileBarChart, Settings as Cog, ArrowLeft,
-  Syringe, ShoppingCart, Receipt, Scale, Tag, CircleDollarSign, Wheat, ClipboardList,
+  Syringe, ShoppingCart, Receipt, Scale, Tag, CircleDollarSign, Wheat, ClipboardList, GitCompare,
 } from 'lucide-react';
 import { useSettings } from './db/hooks';
 import { FormHost, useForms } from './components/forms';
@@ -10,6 +10,8 @@ import { Sheet, ToastProvider } from './components/ui';
 import { useSyncStatus } from './lib/sync';
 import { startReminderLoop } from './lib/notify';
 import { Logo } from './components/Logo';
+import { FarmName } from './components/FarmSwitcher';
+import Compare from './pages/Compare';
 import Today from './pages/Today';
 import Animals from './pages/Animals';
 import AnimalDetail from './pages/AnimalDetail';
@@ -38,6 +40,7 @@ const NAV = [
   { to: '/feed', label: 'Feed', icon: Wheat },
   { to: '/money', label: 'Money', icon: Wallet },
   { to: '/reports', label: 'Reports', icon: FileBarChart },
+  { to: '/compare', label: 'Compare farms', icon: GitCompare },
   { to: '/settings', label: 'Settings', icon: Cog },
 ];
 
@@ -109,7 +112,7 @@ function TopBar({ farmName }: { farmName: string }) {
   return (
     <header className="topbar">
       {deep ? <button className="iconbtn back" onClick={() => nav(-1)} aria-label="Back"><ArrowLeft size={22} /></button> : <span className="rail-hide"><Logo size={28} /></span>}
-      <span className="farm">{farmName || 'FarmOS'}</span>
+      <FarmName name={farmName} />
       <NavLink to="/settings#sync" className="sync-pill" title={sync.detail}>
         <span className={`dot ${sync.tone}`} /> {sync.label}
       </NavLink>
@@ -140,7 +143,7 @@ function Shell({ children }: { children: ReactNode }) {
         <NavLink to="/animals"><PawPrint size={22} aria-hidden />Animals</NavLink>
         <button className="record" onClick={() => setRecording(true)} aria-label="Record"><Plus size={28} /><span>Record</span></button>
         <NavLink to="/milk"><Milk size={22} aria-hidden />Milk</NavLink>
-        <NavLink to="/more" className={({ isActive }) => (isActive || ['/breeding', '/health', '/feed', '/register', '/money', '/reports', '/settings'].some((p) => location.hash.startsWith('#' + p)) ? 'active' : '')}><Menu size={22} aria-hidden />More</NavLink>
+        <NavLink to="/more" className={({ isActive }) => (isActive || ['/breeding', '/health', '/feed', '/register', '/money', '/reports', '/compare', '/guide', '/settings'].some((p) => location.hash.startsWith('#' + p)) ? 'active' : '')}><Menu size={22} aria-hidden />More</NavLink>
       </nav>
       {recording && <RecordSheet onClose={() => setRecording(false)} />}
     </div>
@@ -190,6 +193,7 @@ function Gate() {
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/register" element={<Register />} />
           <Route path="/guide" element={<Guide />} />
+          <Route path="/compare" element={<Compare />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/more" element={<More />} />
           <Route path="/settings" element={<SettingsPage />} />

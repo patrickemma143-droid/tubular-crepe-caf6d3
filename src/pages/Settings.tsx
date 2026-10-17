@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useFarm, useSettings } from '../db/hooks';
 import { updateSettings } from '../db/settings';
 import { FEEDING_LABEL, type Feeding, type Reminder, type Settings } from '../db/types';
@@ -6,7 +7,9 @@ import { Confirm, Field, NumberInput, Segmented, toNum, useToast } from '../comp
 import { askPermission, notificationState, showNotification } from '../lib/notify';
 import { useSyncStatus, syncNow } from '../lib/sync';
 import { createFarm, currentUser, invite, members, myFarms, setCloudConfig, switchToBuiltinCloud, signIn, signOut, signUp, useFarmAccount, type FarmMembership, type Member } from '../lib/cloud';
-import { downloadBackup, eraseThisDevice, restoreBackup } from '../lib/backup';
+import { listFarms, removeFarm, type LocalFarm } from '../lib/farms';
+import { FarmSwitcherSheet } from '../components/FarmSwitcher';
+import { downloadAllFarms, downloadBackup, eraseThisDevice, restoreBackup, switchFarm } from '../lib/backup';
 import { allDataToExcel } from '../lib/export';
 import { hasDemo, removeDemo } from '../db/demo';
 import { useInstall } from '../lib/install';
@@ -39,6 +42,39 @@ function FarmSection({ s }: { s: Settings }) {
         <Field label="Appearance"><Segmented value={s.theme} onChange={(v) => updateSettings({ theme: v })} options={[{ value: 'system', label: 'Match phone' }, { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }]} /></Field>
         <div><button className="btn primary">Save farm details</button></div>
       </form>
+    </section>
+  );
+}
+
+function FarmsHereSection() {
+  const toast = useToast();
+  const [farms, setFarms] = useState<LocalFarm[] | null>(null);
+  const [removing, setRemoving] = useState<LocalFarm | null>(null);
+  const [adding, setAdding] = useState(false);
+  const load = () => listFarms().then(setFarms);
+  useEffect(() => { load(); }, []);
+  return (
+    <section className="section" id="farms">
+      <h2>Farms on this device</h2>
+      <div className="list">
+        {(farms || []).map((f) => (
+          <div key={f.key} className="item">
+            <div className="main"><div className="title">{f.name}</div><div className="sub">{f.records.toLocaleString()} records</div></div>
+            {f.active ? <span className="badge green">Open</span> : <div className="row">
+              <button className="btn secondary sm" onClick={() => switchFarm(f.key)}>Open</button>
+              <button className="btn ghost sm" onClick={() => setRemoving(f)}>Remove</button>
+            </div>}
+          </div>
+        ))}
+      </div>
+      <div className="row wrap">
+        <button className="btn secondary" onClick={() => setAdding(true)}>Add a farm</button>
+        {(farms?.length || 0) > 1 && <Link className="btn ghost" to="/compare">Compare farms</Link>}
+      </div>
+      {adding && <FarmSwitcherSheet onClose={() => setAdding(false)} />}
+      {removing && <Confirm danger title={`Remove ${removing.name} from this device?`} confirmLabel="Remove" onClose={() => setRemoving(null)}
+        body={<p>All of {removing.name}'s records on this device will be deleted. Download a backup of all farms first if you may need them.</p>}
+        onConfirm={async () => { await removeFarm(removing.key); setRemoving(null); toast(`${removing.name} removed`); load(); }} />}
     </section>
   );
 }
@@ -184,20 +220,25 @@ function DataSection({ s }: { s: Settings }) {
       <h2>Your records</h2>
       <div className="list">
         <button className="item" onClick={() => allDataToExcel(farm, s)}><div className="main"><div className="title">Download all records (Excel)</div><div className="sub">Every animal, milk, breeding, health and money record</div></div></button>
-        <button className="item" onClick={() => downloadBackup()}><div className="main"><div className="title">Download backup file</div><div className="sub">Keep it somewhere safe, e.g. Google Drive or WhatsApp to yourself</div></div></button>
-        <button className="item" onClick={() => fileRef.current?.click()}><div className="main"><div className="title">Restore from backup file</div><div className="sub">Adds records from the file; newer copies win</div></div></button>
+        <button className="item" onClick={() => downloadBackup()}><div className="main"><div className="title">Download backup of this farm</div><div className="sub">Keep it somewhere safe, e.g. Google Drive or WhatsApp to yourself</div></div></button>
+        <button className="item" onClick={() => downloadAllFarms()}><div className="main"><div className="title">Download backup of all farms</div><div className="sub">Every farm on this device in one file</div></div></button>
+        <button className="item" onClick={() => fileRef.current?.click()}><div className="main"><div className="title">Open a FarmOS data file</div><div className="sub">Restores a backup or adds farms from a data file; newer copies win</div></div></button>
         {demo && <button className="item" onClick={async () => { await removeDemo(); setDemo(false); toast('Sample farm removed. Your own records are kept.'); }}><div className="main"><div className="title">Remove the sample farm</div><div className="sub">Deletes only the example animals and records</div></div></button>}
         <button className="item" onClick={() => setErase(true)}><div className="main"><div className="title" style={{ color: 'var(--urgent)' }}>Erase everything on this phone</div><div className="sub">Cloud copies are not touched</div></div></button>
       </div>
       <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={async (e) => {
         const f = e.target.files?.[0]; if (!f) return;
-        try { toast(`Restored ${await restoreBackup(f)} records`); } catch (x: any) { toast(x.message); }
+        try {
+          const r = await restoreBackup(f);
+          toast(r.farms.length ? `Added ${r.farms.join(' and ')} (${r.records} records)` : `Restored ${r.records} records`);
+          if (r.open) setTimeout(() => switchFarm(r.open!), 900);
+        } catch (x: any) { toast(x.message); }
         e.target.value = '';
       }} />
       {erase && <Confirm danger title="Erase this phone?" confirmLabel="Erase" onClose={() => { setErase(false); setTyped(''); }}
         onConfirm={async () => { if (typed.trim().toUpperCase() !== 'ERASE') { toast('Type ERASE to confirm'); return; } await eraseThisDevice(); }}
         body={<div className="stack-sm">
-          <p>All animals and records stored on this phone will be deleted. {s.farm_id ? 'Records already backed up to the cloud stay there and come back when you sign in again.' : <b>You have no cloud backup — download a backup file first.</b>}</p>
+          <p>All farms, animals and records stored on this phone will be deleted. {s.farm_id ? 'Records already backed up to the cloud stay there and come back when you sign in again.' : <b>You have no cloud backup — download a backup file first.</b>}</p>
           <Field label="Type ERASE to confirm"><input className="input" value={typed} onChange={(e) => setTyped(e.target.value)} /></Field>
         </div>} />}
     </section>
@@ -228,6 +269,7 @@ export default function SettingsPage() {
       <h1>Settings</h1>
       <InstallSection />
       <FarmSection s={s} />
+      <FarmsHereSection />
       <RemindersSection s={s} />
       <CloudSection s={s} />
       <DataSection s={s} />

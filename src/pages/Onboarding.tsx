@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { restoreBackup, switchFarm } from '../lib/backup';
 import { updateSettings } from '../db/settings';
 import { loadDemo } from '../db/demo';
 import { Field, NumberInput, toNum } from '../components/ui';
@@ -10,6 +11,16 @@ export default function Onboarding() {
   const [currency, setCurrency] = useState('UGX');
   const [price, setPrice] = useState('1200');
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function openFile(f: File) {
+    setBusy(true); setErr('');
+    try {
+      const r = await restoreBackup(f);
+      if (r.open) switchFarm(r.open); else location.reload();
+    } catch (e: any) { setErr(e.message || String(e)); setBusy(false); }
+  }
 
   async function start(demo: boolean) {
     setBusy(true);
@@ -36,6 +47,13 @@ export default function Onboarding() {
         <button type="button" className="btn secondary block" disabled={busy} onClick={() => start(true)}>Explore with a sample farm first</button>
         <p className="small muted">The sample farm has 13 animals and two months of records. You can remove it from Settings at any time without touching your own records.</p>
       </form>
+      <div className="panel pad stack-sm">
+        <b>Already have FarmOS records?</b>
+        <p className="small muted">Open a FarmOS data file or backup (.json) — for example the file with your farms' records. Every farm in it is added to this device.</p>
+        <div><button type="button" className="btn secondary" disabled={busy} onClick={() => fileRef.current?.click()}>Open a data file</button></div>
+        {err && <p className="error small">{err}</p>}
+        <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) openFile(f); e.target.value = ''; }} />
+      </div>
     </main>
   );
 }

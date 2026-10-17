@@ -77,7 +77,19 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .topbar .farm { font-family: var(--display); font-weight: 650; font-size: 18px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .topbar .back { margin-left: -8px; }
-.sync-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); text-decoration: none; padding: 6px 10px; border-radius: 99px; }
+.topbar .farm-switch { display: inline-flex; align-items: center; gap: 4px; flex: 0 1 auto; margin-right: auto; background: none; border: 0; color: inherit; padding: 8px 10px; margin-left: -10px; border-radius: 10px; cursor: pointer; min-height: 44px; }
+.topbar .farm-switch span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar .farm-switch:hover { background: var(--primary-soft); }
+.cmp { width: 100%; border-collapse: collapse; }
+.cmp th, .cmp td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; }
+.cmp th:first-child, .cmp td:first-child { text-align: left; }
+.cmp thead th { font-size: 13px; color: var(--muted); font-weight: 600; }
+.cmp tr.group td { font-weight: 700; padding-top: 18px; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .04em; border-bottom: 0; }
+.cmp .lead { font-weight: 700; }
+.cmpbar { display: grid; grid-template-columns: minmax(90px, 160px) 1fr auto; gap: 8px 10px; align-items: center; }
+.cmpbar .bar { height: 14px; border-radius: 7px; background: var(--line); overflow: hidden; }
+.cmpbar .bar i { display: block; height: 100%; border-radius: 7px; }
+.sync-pill { white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); text-decoration: none; padding: 6px 10px; border-radius: 99px; }
 .sync-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
 .sync-pill .dot.ok { background: var(--grass); }
 .sync-pill .dot.warn { background: var(--soon); }

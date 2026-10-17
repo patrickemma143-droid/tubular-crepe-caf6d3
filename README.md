@@ -9,7 +9,7 @@ Dairy farm records that work on a phone, with or without internet.
 - **Feed**: every feed in store (dairy meal, bran, napier, hay, minerals), purchases (added to expenses), daily use, stock counts, days of feed left, low-stock warnings, feed cost per litre of milk.
 - **Herd register**: the monthly stock count by class used on ranches (cows, heifers, breeding bulls, castrates, young bulls, bull and female calves): brought forward, births, grading between classes, purchases, deaths, sales, closing count and value. Months that don't add up are flagged.
 - **Track every animal on a ranch**: start from the herd register — one record per head with a temporary number (TMP-HF-012) until it is ear-tagged, ages estimated from the register's births. Each animal then gets an **outlook**: estimated weight and growth against its breed and feeding, when a heifer will be old and heavy enough to serve, its first calving date, when bulls and steers reach sale weight, and for cows the expected milk today, next 30 days and whole lactation (breed lactation curve, corrected by her own records). Calves born on the farm are tracked from birth and linked to their mother and grandmother. Slow growers, heifers ready to serve, stock at sale weight and cows giving far less than expected show on Today and in the monthly report. **What to record** (More → What to record) is the guide for staff.
-- **Several farms**: one account can own several farms (e.g. Namugongo and Kyankwanzi). Switch farms under Settings; each phone holds one farm at a time and never mixes their records.
+- **Several farms, no sign-in**: keep any number of farms on one device (e.g. Kyankwanzi Ranch and Namugongo Farm). Tap the farm name at the top to switch; each farm has its own animals, milk, register and money and they never mix. **Compare farms** puts them side by side by year or month: cattle, goats & pigs, births, deaths, sales, milk, income, expenses and profit, with totals for all farms. Farms can be loaded from a FarmOS data file (welcome screen → *Open a data file*, or Settings → *Open a FarmOS data file*), and *Download backup of all farms* saves every farm in one file. Cloud sign-in is optional.
 - **Money**: milk sales, animal sales, expenses by category. Vet, AI and animal purchase costs are added automatically.
 - **Reports**: weekly, monthly or any dates — herd movement (born, bought, sold, died), milk per cow, breeding, health, profit. Download as **PDF** or **Excel**, or print.
 - **Today screen**: what needs doing — sick cows, withdrawal, calvings due, heat watch, pregnancy checks, overdue vaccines, milk drops, missed milk entries.
@@ -41,13 +41,26 @@ Without this, records stay on the phone (download a backup file from Settings re
 
 How sync works: every record is uploaded separately with its edit time. The database keeps the newest edit of each record, deletes are kept as markers, and phones pull only what changed. Two phones recording offline at the same time both keep their work.
 
-## Importing the Kyankwanzi Ranch ledger
+## Loading the farms' spreadsheets
+
+`tools/import/` turns the farms' Excel ledgers into a FarmOS data file:
+
+```bash
+python3 -I tools/import/parse.py <Kyankwanzi.xlsx> blocks.json                # Kyankwanzi herd register
+python3 -I tools/import/validate.py blocks.json 2026-10 issues.json            # its checks
+python3 -I tools/import/namugongo.py <Namugongo.xlsx> namugongo.json          # Namugongo milk, money, register
+python3 -I tools/import/make_bundle.py blocks.json issues.json namugongo.json FarmOS_farms.json
+```
+
+Open `FarmOS_farms.json` in the app. The data file holds real farm records: it is ignored by git — keep it private and never put it on the website.
+
+## Importing the Kyankwanzi Ranch ledger into the cloud (optional)
 
 After `schema.sql`, and after the owner has created an account in the app, run `supabase/import_kyankwanzi.sql` in the Supabase SQL Editor. It creates *Kyankwanzi Ranch* and *Namugongo Farm* for the owner and loads 106 months of stock (Jan 2018 – Oct 2026). Problems found in the ledger: `supabase/kyankwanzi_import_findings.md`. Tools to import other ledgers: `tools/import/`.
 
 ## Testing sync
 
-`tests/sync-e2e/` runs three phones (owner, manager, farm hand) against a local Supabase stand-in and checks offline edits, conflicts, deletes, roles and recovery. See its README. Last run (18 Oct 2026): 25/25 passed; import + farm switching (`import.cjs`): 16/16; ranch tracking on the real Kyankwanzi register (`ranch.cjs`: 747 records created, synced to a second phone, tagging, weighing, calving, outlook, reports): 22/22.
+`tests/sync-e2e/` runs three phones (owner, manager, farm hand) against a local Supabase stand-in and checks offline edits, conflicts, deletes, roles and recovery. See its README. Last run (18 Oct 2026): 25/25 passed; import + farm switching (`import.cjs`): 16/16; ranch tracking on the real Kyankwanzi register (`ranch.cjs`: 747 records created, synced to a second phone, tagging, weighing, calving, outlook, reports): 22/22; two farms on one device with no sign-in (`farms.cjs`: open the data file, switch, compare, add/remove a farm, farm-total milk, all-farms backup): 22/22.
 
 ## Code map
 

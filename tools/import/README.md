@@ -12,3 +12,13 @@ python3 make_sql.py blocks.json issues.json import.sql
 
 Edit `OWNER_EMAIL`, `CUTOFF`, farm names and `SRC` at the top of `make_sql.py` for another farm.
 `STAMP` must be a time in the past, so later edits made in the app always win.
+
+## Namugongo dairy farm workbook and the two-farm data file
+
+```bash
+python3 -I namugongo.py Namugongo.xlsx namugongo.json    # milk 2017-18, money 2016-18, stock-takes 2018-2026, with issues
+python3 -I make_bundle.py blocks.json issues.json namugongo.json FarmOS_farms.json
+```
+
+`FarmOS_farms.json` opens in the app (welcome screen → Open a data file, or Settings → Open a FarmOS data file)
+and adds Kyankwanzi Ranch and Namugongo Farm as two farms on the device. It holds real records: keep it private.

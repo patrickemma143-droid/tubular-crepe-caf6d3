@@ -11,3 +11,5 @@ supabase/*_findings.md
 
 # local git helper files
 .farmos-merge-index
+FarmOS_*.json
+tools/import/*.json

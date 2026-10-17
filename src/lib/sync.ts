@@ -14,7 +14,7 @@ import { TABLES, type TableName } from '../db/types';
 export type SyncTone = 'ok' | 'warn' | 'off';
 interface Status { tone: SyncTone; label: string; detail: string; busy: boolean; pending: number }
 
-let status: Status = { tone: 'warn', label: 'On this phone', detail: 'Cloud backup is not set up. Records are saved on this device only.', busy: false, pending: 0 };
+let status: Status = { tone: 'warn', label: 'On this device', detail: 'Cloud backup is not set up. Records are saved on this device only.', busy: false, pending: 0 };
 const subs = new Set<() => void>();
 function set(s: Partial<Status>) { status = { ...status, ...s }; subs.forEach((f) => f()); }
 export function useSyncStatus(): Status {
@@ -60,9 +60,11 @@ export async function syncNow(): Promise<void> {
     const pending = await countPending();
     const s = await getSettings();
     const sb = await getClient();
-    if (!sb) return set({ tone: 'warn', label: 'On this phone', detail: 'Cloud backup is not set up. Records are saved on this device only.', pending });
+    if (!sb) return set({ tone: 'warn', label: 'On this device', detail: 'Cloud backup is not set up. Records are saved on this device only.', pending });
     const { data: sess } = await sb.auth.getSession();
-    if (!sess.session) return set({ tone: 'warn', label: 'Signed out', detail: 'Sign in under Settings to back up and share records.', pending });
+    if (!sess.session) return s.farm_id
+      ? set({ tone: 'warn', label: 'Signed out', detail: 'Sign in under Settings to back up and share records.', pending })
+      : set({ tone: 'warn', label: 'On this device', detail: 'Records are saved on this device. Download a backup from Settings now and then, or sign in to back up to the cloud.', pending });
     if (!s.farm_id) return set({ tone: 'warn', label: 'No farm', detail: 'Create or join a farm under Settings.', pending });
     if (!navigator.onLine) return set({ tone: 'off', label: pending ? `${pending} waiting` : 'Offline', detail: 'No internet. Records are saved and will upload when you are back online.', pending });
 

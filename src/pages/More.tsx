@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Baby, FileBarChart, HeartPulse, Settings, Wallet, Download, Wheat, ClipboardList, BookOpen } from 'lucide-react';
+import { Baby, FileBarChart, HeartPulse, Settings, Wallet, Download, Wheat, ClipboardList, BookOpen, GitCompare } from 'lucide-react';
 import { months, rowsFor, totals } from '../lib/register';
 import { feedStatus } from '../lib/feed';
 import { useMemo } from 'react';
@@ -25,6 +25,7 @@ export default function More() {
     { to: '/feed', icon: Wheat, t: 'Feed', d: `${counts.lowFeed ? `${counts.lowFeed} running low · ` : ''}stock in store, purchases, daily use` },
     ...(worker ? [] : [{ to: '/money', icon: Wallet, t: 'Money', d: 'Milk sales, animal sales, expenses, profit' }]),
     { to: '/reports', icon: FileBarChart, t: 'Reports', d: 'Weekly and monthly reports · PDF and Excel' },
+    { to: '/compare', icon: GitCompare, t: 'Compare farms', d: 'Your farms side by side: herd, milk, money' },
     { to: '/guide', icon: BookOpen, t: 'What to record', d: 'Guide for staff: tags, births, weights, milk, health' },
     { to: '/settings', icon: Settings, t: 'Settings', d: 'Farm details, reminders, backup and team' },
     ...(installed ? [] : [{ to: '/settings', icon: Download, t: 'Install on this phone', d: 'Works offline from your home screen' }]),

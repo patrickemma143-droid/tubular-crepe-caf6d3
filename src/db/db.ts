@@ -3,7 +3,7 @@ import type {
   Animal, MilkLog, BreedingEvent, HealthRecord, WeightRecord, Transaction, Settings, TableName, Base, Feed, FeedMove, StockMonth,
 } from './types';
 
-class FarmDB extends Dexie {
+export class FarmDB extends Dexie {
   animals!: Table<Animal, string>;
   milk!: Table<MilkLog, string>;
   breeding!: Table<BreedingEvent, string>;
@@ -15,8 +15,8 @@ class FarmDB extends Dexie {
   stock!: Table<StockMonth, string>;
   meta!: Table<Settings, string>;
 
-  constructor() {
-    super('farmos');
+  constructor(name = 'farmos') {
+    super(name);
     this.version(1).stores({
       animals: 'id, tag, status, dirty, deleted',
       milk: 'id, animal_id, date, [animal_id+date+session], dirty, deleted',
@@ -35,7 +35,13 @@ class FarmDB extends Dexie {
   }
 }
 
-export const db = new FarmDB();
+// Each farm on this device has its own database: 'farmos' (the first farm)
+// or 'farmos-<key>'. The open farm is remembered per device.
+export const ACTIVE_KEY = 'farmos-active-farm';
+export function activeFarmKey(): string {
+  try { return localStorage.getItem(ACTIVE_KEY) || 'farmos'; } catch { return 'farmos'; }
+}
+export const db = new FarmDB(activeFarmKey());
 
 export function uid(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();

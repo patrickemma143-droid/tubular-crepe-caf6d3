@@ -29,12 +29,14 @@ export const DEFAULT_SETTINGS: Settings = {
   supabase_key: BUILTIN_CLOUD.key,
 };
 
+/** Phones that haven't chosen their own project always use the built-in cloud. */
+export function withCloud(s: Settings): Settings {
+  return s.supabase_custom ? s : { ...s, supabase_url: BUILTIN_CLOUD.url, supabase_key: BUILTIN_CLOUD.key };
+}
+
 export async function getSettings(): Promise<Settings> {
   const s = await db.meta.get('settings');
-  const out = { ...DEFAULT_SETTINGS, ...(s || {}) };
-  // Phones that haven't chosen their own project always use the built-in cloud
-  if (!out.supabase_custom) { out.supabase_url = BUILTIN_CLOUD.url; out.supabase_key = BUILTIN_CLOUD.key; }
-  return out;
+  return withCloud({ ...DEFAULT_SETTINGS, ...(s || {}) });
 }
 
 export async function updateSettings(patch: Partial<Settings>): Promise<Settings> {

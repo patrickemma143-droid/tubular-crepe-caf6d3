@@ -143,7 +143,7 @@ export async function allDataToExcel(farm: Farm, s: Settings) {
   const XLSX = await import('xlsx');
   const wb = XLSX.utils.book_new();
   const byId = new Map(farm.animals.map((a) => [a.id, a]));
-  const tag = (id?: string) => (id ? byId.get(id)?.tag || '' : '');
+  const tag = (id?: string) => (id === 'herd' ? 'Farm total' : id ? byId.get(id)?.tag || '' : '');
   const sheet = (name: string, rows: any[]) => XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), name);
   sheet('Animals', farm.animals.map((a) => {
     const r = repro(a, farm.breeding, farm.milk);

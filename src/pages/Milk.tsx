@@ -35,7 +35,7 @@ export default function MilkPage() {
       if (m.date < addDays(t, -13)) return;
       const k = m.date + m.session;
       const s = sessions.get(k) || { date: m.date, session: m.session, total: 0, cows: 0, est: false };
-      s.total += m.litres; s.cows++; s.est = s.est || m.method === 'estimated';
+      s.total += m.litres; if (m.animal_id !== 'herd') s.cows++; s.est = s.est || m.method === 'estimated';
       sessions.set(k, s);
     });
     const log = [...sessions.values()].sort((x, y) => y.date.localeCompare(x.date) || y.session.localeCompare(x.session));
@@ -85,7 +85,7 @@ export default function MilkPage() {
           <div className="list">
             {d.log.map((s) => (
               <Link key={s.date + s.session} to={`/milk/record?date=${s.date}&session=${s.session}`} className="item">
-                <div className="main"><div className="title">{fmtWeekday(s.date)} {fmtDate(s.date)} · {s.session === 'AM' ? 'Morning' : 'Evening'}</div><div className="sub">{s.cows} cows{s.est ? ' · estimated' : ''} · tap to correct</div></div>
+                <div className="main"><div className="title">{fmtWeekday(s.date)} {fmtDate(s.date)} · {s.session === 'AM' ? 'Morning' : 'Evening'}</div><div className="sub">{s.cows ? `${s.cows} cows` : 'Farm total'}{s.est ? ' · estimated' : ''} · tap to correct</div></div>
                 <b className="num">{litres(s.total)}</b>
               </Link>
             ))}

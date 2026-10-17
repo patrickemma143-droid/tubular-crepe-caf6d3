@@ -14,6 +14,8 @@ export interface Farm {
   stock: StockMonth[];
 }
 
+/** animal_id of milk recorded for the whole farm rather than one cow */
+export const HERD = 'herd';
 export const GESTATION_DAYS = 283;
 export const HEAT_CYCLE_DAYS = 21;
 
